@@ -221,16 +221,16 @@ class data_construction():
         normal_idx = [idx for idx in range(0, len(self.train_data)) if idx not in unlearn_idx]    
         # sample the remain data index and remove them 
         sample_idx = random.sample(normal_idx, len(unlearn_idx))
-        
+        unlearn_correct = Subset(self.train_data, unlearn_idx)
         for idx in unlearn_idx:
             self.train_data.targets[idx] = random.sample([i for i in range(0,9) if i != self.train_data.targets[idx]],1)[0]
         
         # obtain unlearn remain sample data from train data
         unlearn_data = Subset(self.train_data, unlearn_idx) 
         remain_data = Subset(self.train_data, normal_idx)
-        sample_data = Subset(self.train_data, sample_idx)
+        # sample_data = Subset(self.train_data, sample_idx)
 
-        return unlearn_data, remain_data, sample_data
+        return unlearn_data, remain_data, unlearn_correct
     
     def random_data(self):
         
