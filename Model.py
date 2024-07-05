@@ -15,37 +15,37 @@ from torchvision import models, transforms
 from  torchvision.models import ResNet18_Weights
 
 
-# class CNN(nn.Module):
-#     def __init__(self):
-#         super(CNN, self).__init__()
-#         self.conv1 = nn.Sequential(         
-#             nn.Conv2d(
-#                 in_channels=1,              
-#                 out_channels=16,            
-#                 kernel_size=5,              
-#                 stride=1,                   
-#                 padding=2,                  
-#             ),                              
-#             nn.ReLU(),                      
-#             nn.MaxPool2d(kernel_size=2),    
-#         )
-#         self.conv2 = nn.Sequential(         
-#             nn.Conv2d(16, 32, 5, 1, 2),     
-#             nn.ReLU(),                      
-#             nn.MaxPool2d(2),                
-#         )
-#         self.fc1 = nn.Linear(32 * 7 * 7, 256)
-#         self.fc2 = nn.Sequential(
-#             nn.Linear(256, 128),
-#             nn.Linear(128, 10)
-#         )
-#     def forward(self, x):
-#         x = self.conv1(x)
-#         x = self.conv2(x)
-#         x = x.view(x.size(0), -1)       
-#         embedding = self.fc1(x)
-#         output = self.fc2(embedding)
-#         return output, embedding
+class CNN(nn.Module):
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv1 = nn.Sequential(         
+            nn.Conv2d(
+                in_channels=1,              
+                out_channels=16,            
+                kernel_size=5,              
+                stride=1,                   
+                padding=2,                  
+            ),                              
+            nn.ReLU(),                      
+            nn.MaxPool2d(kernel_size=2),    
+        )
+        self.conv2 = nn.Sequential(         
+            nn.Conv2d(16, 32, 5, 1, 2),     
+            nn.ReLU(),                      
+            nn.MaxPool2d(2),                
+        )
+        self.fc1 = nn.Linear(32 * 7 * 7, 256)
+        self.fc2 = nn.Sequential(
+            nn.Linear(256, 128),
+            nn.Linear(128, 10)
+        )
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = x.view(x.size(0), -1)       
+        embedding = self.fc1(x)
+        output = self.fc2(embedding)
+        return output, embedding
 
 # class CNN(nn.Module):
 #     def __init__(self):
@@ -90,50 +90,50 @@ from  torchvision.models import ResNet18_Weights
 
 #         return output, embedding
 
-class CNN(nn.Module):
-    def __init__(self):
-        super(CNN, self).__init__()
-        self.activations = {}
+# class CNN(nn.Module):
+#     def __init__(self):
+#         super(CNN, self).__init__()
+#         self.activations = {}
 
-        self.conv1 = nn.Conv2d(
-            in_channels=1,
-            out_channels=16,
-            kernel_size=5,
-            stride=1,
-            padding=2,
-        )
-        self.relu1 = nn.ReLU()
-        self.maxpool1 = nn.MaxPool2d(kernel_size=2)
+#         self.conv1 = nn.Conv2d(
+#             in_channels=1,
+#             out_channels=16,
+#             kernel_size=5,
+#             stride=1,
+#             padding=2,
+#         )
+#         self.relu1 = nn.ReLU()
+#         self.maxpool1 = nn.MaxPool2d(kernel_size=2)
 
-        self.conv2 = nn.Conv2d(16, 32, 5, 1, 2)
-        self.relu2 = nn.ReLU()
-        self.maxpool2 = nn.MaxPool2d(2)
+#         self.conv2 = nn.Conv2d(16, 32, 5, 1, 2)
+#         self.relu2 = nn.ReLU()
+#         self.maxpool2 = nn.MaxPool2d(2)
 
-        self.fc1 = nn.Linear(32 * 7 * 7, 256)
-        self.fc2_1 = nn.Linear(256, 128)
-        self.fc2_2 = nn.Linear(128, 10)
+#         self.fc1 = nn.Linear(32 * 7 * 7, 256)
+#         self.fc2_1 = nn.Linear(256, 128)
+#         self.fc2_2 = nn.Linear(128, 10)
 
-    def forward(self, x):
-        x = self.conv1(x)
-        self.activations['conv1'] = x
-        x = self.relu1(x)
-        x = self.maxpool1(x)
+#     def forward(self, x):
+#         x = self.conv1(x)
+#         self.activations['conv1'] = x
+#         x = self.relu1(x)
+#         x = self.maxpool1(x)
 
-        x = self.conv2(x)
-        self.activations['conv2'] = x
-        x = self.relu2(x)
-        x = self.maxpool2(x)
+#         x = self.conv2(x)
+#         self.activations['conv2'] = x
+#         x = self.relu2(x)
+#         x = self.maxpool2(x)
 
-        x = x.view(x.size(0), -1)
-        embedding = self.fc1(x)
-        self.activations['fc1'] = embedding
+#         x = x.view(x.size(0), -1)
+#         embedding = self.fc1(x)
+#         self.activations['fc1'] = embedding
 
-        x = self.fc2_1(embedding)
-        self.activations['fc2_1'] = x
-        output = self.fc2_2(x)
-        self.activations['fc2_2'] = output
+#         x = self.fc2_1(embedding)
+#         self.activations['fc2_1'] = x
+#         output = self.fc2_2(x)
+#         self.activations['fc2_2'] = output
 
-        return output, embedding
+#         return output, embedding
         
 class ResNet(nn.Module):
     def __init__(self):
