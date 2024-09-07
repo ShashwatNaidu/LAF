@@ -26,15 +26,16 @@ import xgboost as xgb
 from xgboost import XGBClassifier
 import copy
 
-def train(model, train_loader, test_loader, epochs, lr, weight_decay):
+def train(model, train_loader, test_loader, epochs, lr, weight_decay, best_model = True):
     
     model.cuda()
     model.train()
+    best_loss = float('inf')
+    best_model = None
     optimizer = optim.Adam(model.parameters(), lr = lr, weight_decay=weight_decay) 
     loss_func = nn.CrossEntropyLoss()  
     for epoch in range(epochs):
-        
-        
+        epoch_loss = 0.0
         for i, (data, targets) in enumerate(train_loader):
             
             data = data.cuda() 
@@ -46,13 +47,19 @@ def train(model, train_loader, test_loader, epochs, lr, weight_decay):
             optimizer.zero_grad()           
             
             loss.backward()    
-            
             optimizer.step() 
             
-                        
-        print ('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, epochs, loss.item()))
-    
-    return model
+            epoch_loss += loss.item()  # Accumulate batch loss
+                    
+        avg_loss = epoch_loss / len(train_loader)  # Average loss for the epoch
+        print('Epoch [{}/{}], Average Loss: {:.4f}'.format(epoch + 1, epochs, avg_loss))
+        if(avg_loss <= best_loss):
+            print("Nest Best Model found on Epoch {}".format(epoch + 1))
+            best_loss = avg_loss
+            best_model = copy.deepcopy(model)
+
+    return best_model
+
          
 def test(trained_model, test_loader, output_label = None):
     trained_model = trained_model.cuda()
