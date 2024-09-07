@@ -26,13 +26,13 @@ import xgboost as xgb
 from xgboost import XGBClassifier
 import copy
 
-def train(model, train_loader, test_loader):
+def train(model, train_loader, test_loader, epochs, lr, weight_decay):
     
     model.cuda()
     model.train()
-    optimizer = optim.Adam(model.parameters(), lr = 1e-4, weight_decay=1e-4) 
+    optimizer = optim.Adam(model.parameters(), lr = lr, weight_decay=weight_decay) 
     loss_func = nn.CrossEntropyLoss()  
-    for epoch in range(20):
+    for epoch in range(epochs):
         
         
         for i, (data, targets) in enumerate(train_loader):
@@ -50,7 +50,7 @@ def train(model, train_loader, test_loader):
             optimizer.step() 
             
                         
-        print ('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, 20, loss.item()))
+        print ('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, epochs, loss.item()))
     
     return model
          
