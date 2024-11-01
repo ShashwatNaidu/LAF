@@ -54,7 +54,7 @@ def train(model, train_loader, test_loader, epochs, lr, weight_decay, best_model
         avg_loss = epoch_loss / len(train_loader)  # Average loss for the epoch
         print('Epoch [{}/{}], Average Loss: {:.4f}'.format(epoch + 1, epochs, avg_loss))
         if(avg_loss <= best_loss):
-            print("Nest Best Model found on Epoch {}".format(epoch + 1))
+            print("Next Best Model found on Epoch {}".format(epoch + 1))
             best_loss = avg_loss
             best_model = copy.deepcopy(model)
 
