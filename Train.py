@@ -292,4 +292,92 @@ def attack(trained_model, attack_model, target_loaders, test_loader):
     
     print("MIA Attacker accuracy = {:.4f}".format(acc))
     
-    return acc                        
+    return acc     
+
+def testHypothesis(trained_model, retrained_model, test_loader, output_label = None, test_label = 0, labelAgnostic=True):
+    trained_model = trained_model.cuda()
+    retrained_model = retrained_model.cuda()
+    trained_model.eval()
+    retrained_model.eval()
+    all_preds = torch.tensor([])
+    targets = torch.tensor([])
+    original_targets = torch.tensor([])
+    matchLength = torch.tensor([])
+    total = 0
+    correct = 0
+    with torch.no_grad():
+
+        for i, (x,y) in enumerate(test_loader):
+            
+            original_targets = torch.cat((original_targets, y.cpu()),dim=0)
+                            
+            x = x.cuda()
+            y = y.type(torch.LongTensor)
+            y = y.cuda()
+            y_out, _ = trained_model(x)
+            y_out_retrained, _ = retrained_model(x)
+
+            predicted_set_original = torch.from_numpy(np.argsort(-y_out.cpu().numpy())[:, ::-1].copy())
+            predicted_set_retrained = torch.from_numpy(np.argsort(-y_out_retrained.cpu().numpy())[:, ::-1].copy())
+            for k in range(len(predicted_set_original)):
+                if(labelAgnostic):
+                    if predicted_set_original[k][0] == test_label :
+                        shifted_set = torch.cat((predicted_set_original[k][1:], predicted_set_original[k][0].unsqueeze(0)))
+                        newPredictedSet = shifted_set
+                    else:
+                        newPredictedSet = predicted_set_original[k]
+                    newRetrainedSet = predicted_set_retrained[k]
+                    # ind = int(torch.where(predicted_set_retrained[k] == predicted_set_original[k][0])[0].cpu().numpy()[0])
+                    # newRetrainedSet = torch.cat((predicted_set_retrained[k][:ind], predicted_set_retrained[k][ind+1:]))
+                else:
+                    indOrg = int(torch.where(predicted_set_retrained[k] == test_label)[0].cpu().numpy()[0])
+                    newPredictedSet = torch.cat((predicted_set_original[k][:indOrg], predicted_set_original[k][indOrg+1:]))
+                    indRet = int(torch.where(predicted_set_retrained[k] == test_label)[0].cpu().numpy()[0])
+                    newRetrainedSet = torch.cat((predicted_set_retrained[k][:indRet], predicted_set_retrained[k][indRet+1:]))
+    
+                newPredictedSet = newPredictedSet.cpu().numpy()
+                newRetrainedset = newRetrainedSet.cpu().numpy()
+                i = 0
+                while i < len(newPredictedSet):
+                    if(newPredictedSet[i] != newRetrainedSet[i]):
+                        y1 = torch.tensor([i])
+                        matchLength = torch.cat((matchLength, y1.cpu()),dim=0)
+                        break
+                    i += 1
+                if(i == len(newPredictedSet)):
+                    y1 = torch.tensor([len(newPredictedSet)])
+                    matchLength = torch.cat((matchLength, y1.cpu()),dim=0)
+                
+            _, predicted = torch.max(y_out.data, dim=1)
+            all_preds = torch.cat((all_preds, y_out.cpu()),dim=0)
+            targets = torch.cat((targets, y.cpu()),dim=0)
+            
+            total += y.size(0)
+            correct += (predicted == y).sum().item()   
+
+        preds = all_preds.argmax(dim=1)
+        targets = np.array(targets)
+        acc = 100.0 * correct / total
+        #print('The accuracy of the all classes is: ', acc)
+        if output_label is None:
+            #print('Confusion matrix and classification report of all classes are: ')
+            #print(confusion_matrix(targets, preds))
+            #print(classification_report(targets, preds))
+            selected_acc = acc
+        else:
+            selected_preds = []
+            selected_targets = []
+            selected_total = 0
+            for i in range(len(preds)):
+                if original_targets[i] in output_label:
+                    selected_preds.append(preds[i])
+                    selected_targets.append(targets[i])
+                    selected_total += 1  
+            # if len(output_label) == 1:        
+            #     print(selected_preds) 
+                        
+            selected_correct = (np.array(selected_preds) == np.array(selected_targets)).sum().item()                  
+            selected_acc = 100.0 * selected_correct / selected_total
+            #print('The accuracy of the selected classes ', output_label, 'is: ', selected_acc)
+
+    return selected_acc, matchLength
