@@ -382,3 +382,66 @@ def testHypothesis(trained_model, retrained_model, test_loader, output_label = N
             #print('The accuracy of the selected classes ', output_label, 'is: ', selected_acc)
 
     return selected_acc, matchLength
+
+def testUnlearn(retrained_model, unlearn_model, test_loader, output_label = None):
+    retrained_model = retrained_model.cuda()
+    unlearn_model = unlearn_model.cuda()
+    retrained_model.eval()
+    unlearn_model.eval()
+    all_preds_retrain = torch.tensor([])
+    targets_retrain = torch.tensor([])
+    all_preds_unlearn = torch.tensor([])
+    targets_unlearn = torch.tensor([])
+    original_targets = torch.tensor([])
+    total = 0
+    correct = 0
+    with torch.no_grad():
+
+        for i, (x,y) in enumerate(test_loader):
+            
+            original_targets = torch.cat((original_targets, y.cpu()),dim=0)
+                            
+            x = x.cuda()
+            y = y.type(torch.LongTensor)
+            y = y.cuda()
+            y_out_retrain, _ = retrained_model(x)
+            y_out_unlearn, _ = unlearn_model(x)
+            
+            _, predicted_retrain = torch.max(y_out_retrain.data, dim=1)
+            all_preds_retrain = torch.cat((all_preds_retrain, y_out_retrain.cpu()),dim=0)
+            targets_retrain = torch.cat((targets_retrain, y.cpu()),dim=0)
+
+            _, predicted_unlearn = torch.max(y_out_unlearn.data, dim=1)
+            all_preds_unlearn = torch.cat((all_preds_unlearn, y_out_unlearn.cpu()),dim=0)
+            targets_unlearn = torch.cat((targets_unlearn, y.cpu()),dim=0)
+            
+            total += y.size(0)
+            correct += (predicted_retrain == predicted_unlearn).sum().item()   
+
+        preds_retrain = all_preds_retrain.argmax(dim=1)
+        preds_unlearn = all_preds_unlearn.argmax(dim=1)
+        targets_retrain = np.array(targets_retrain)
+        acc = 100.0 * correct / total
+        #print('The accuracy of the all classes is: ', acc)
+        if output_label is None:
+            #print('Confusion matrix and classification report of all classes are: ')
+            #print(confusion_matrix(targets, preds))
+            #print(classification_report(targets, preds))
+            selected_acc = acc
+        else:
+            selected_preds_retrain = []
+            selected_preds_unlearn = []
+            selected_total = 0
+            for i in range(len(preds_retrain)):
+                if original_targets[i] in output_label:
+                    selected_preds_retrain.append(preds_retrain[i])
+                    selected_preds_unlearn.append(preds_unlearn[i])
+                    selected_total += 1  
+            # if len(output_label) == 1:        
+            #     print(selected_preds) 
+                        
+            selected_correct = (np.array(selected_preds_retrain) == np.array(selected_preds_unlearn)).sum().item()                  
+            selected_acc = 100.0 * selected_correct / selected_total
+            #print('The accuracy of the selected classes ', output_label, 'is: ', selected_acc)
+
+    return selected_acc
