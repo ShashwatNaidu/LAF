@@ -295,6 +295,7 @@ def attack(trained_model, attack_model, target_loaders, test_loader):
     return acc     
 
 def testHypothesis(trained_model, retrained_model, test_loader, output_label = None, test_label = 0, labelAgnostic=True):
+    print("Shashwat")
     trained_model = trained_model.cuda()
     retrained_model = retrained_model.cuda()
     trained_model.eval()
